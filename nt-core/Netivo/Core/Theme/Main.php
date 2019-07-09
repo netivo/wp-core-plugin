@@ -81,7 +81,8 @@ abstract class Main {
 		    foreach($this->configuration['supports'] as $key => $support){
 		        if(is_string($support)){
 		            $args = (array_key_exists($support, $this->configuration['supports'])) ? $this->configuration['supports'][$support] : [];
-		            add_theme_support($support, $args);
+		            if(empty($args)) add_theme_support($support);
+		            else add_theme_support($support, $args);
                 }
             }
         }
