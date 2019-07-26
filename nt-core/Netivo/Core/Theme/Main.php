@@ -95,6 +95,8 @@ abstract class Main {
 			$this->init_woocommerce();
 		}
 
+		$this->init();
+
 		if ( is_admin() ) {
 			$this->init_admin_site();
 		}
@@ -449,4 +451,5 @@ abstract class Main {
 			new $name();
 		}
 	}
+    protected abstract function init();
 }

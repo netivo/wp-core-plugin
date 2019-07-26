@@ -95,7 +95,6 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
 			$obj   = new ReflectionClass( $this );
 
 			foreach ( $files as $file ) {
-				var_dump( $file );
 				$name         = basename( $file );
 				$not_included = array();
 				if ( ! in_array( $name, $not_included ) ) {

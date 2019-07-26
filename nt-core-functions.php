@@ -16,7 +16,7 @@ if(!defined('ABSPATH')){
 define( 'NT_CORE_PLUGIN_FILE', __FILE__ );
 define( 'NT_CORE_PLUGIN_PATH', WPMU_PLUGIN_DIR.'/nt-core/' );
 define( 'NT_CORE_PLUGIN_URL', WPMU_PLUGIN_URL.'/nt-core/' );
-define( 'NT_CORE_VERSION', '1.2.3' );
+define( 'NT_CORE_VERSION', '1.2.4' );
 
 require_once WPMU_PLUGIN_DIR.'/nt-core/Netivo/Autoloader.php';
 require_once WPMU_PLUGIN_DIR.'/nt-core/updater.php';
