@@ -45,12 +45,16 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
 		 * Panel constructor.
 		 */
 		public function __construct() {
+		    $this->set_vars();
+
 			add_action( 'admin_enqueue_scripts', [ $this, 'init_header' ] );
 			try {
 				$this->init_pages();
 				$this->init_metaboxes();
 				$this->init_gutenberg();
 				$this->init_bulkactions();
+
+				$this->init();
 
 			} catch ( \Exception $e ) {
 				$e->getCode();
@@ -184,6 +188,10 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
 			}
 		}
 
+        protected abstract function set_vars();
+
+		protected abstract function init();
 	}
+
 
 }
