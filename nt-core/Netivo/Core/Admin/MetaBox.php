@@ -102,7 +102,7 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 			} else {
 				global $post;
 				if($this->template == 'home-page'){
-					if ((int) get_option( 'page_on_front' ) === $post->ID) {
+					if (in_array($post->ID, $this->get_page_on_front())) {
 						add_meta_box( $this->id, $this->title, [
 							$this,
 							'display'
@@ -118,6 +118,19 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 				}
 			}
 		}
+
+		protected function get_page_on_front(){
+		    $pof = (int) get_option('page_on_front');
+		    $ret = [];
+		    if(function_exists('pll_current_language')){
+		        $languages = pll_the_languages(array('raw'=>1));
+		        foreach($languages as $lang) {
+		            $ret[] = pll_get_post($pof, $lang['slug']);
+                }
+            }
+		    else $ret = [$pof];
+		    return $ret;
+        }
 
 		/**
 		 * Displays the metabox content.
