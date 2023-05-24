@@ -35,9 +35,8 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 *
 		 * @throws \ReflectionException When error.
 		 */
-		public function __construct( $include_path ) {
-			$this->include_path = $include_path;
-
+		public function __construct( ) {
+		    $this->init_vars();
 			$this->init_product_types();
 			$this->init_child();
 			if(is_admin()) {

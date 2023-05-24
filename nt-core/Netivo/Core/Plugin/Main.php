@@ -212,6 +212,10 @@ abstract class Main
             }
         }
     }
+	
+	public function get_configuration() {
+		return $this->configuration;
+	}
 
     /**
      * Initializes woocommerce functions.

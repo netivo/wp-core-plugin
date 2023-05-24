@@ -439,6 +439,19 @@ if ( ! class_exists( '\Netivo\Core\Database\EntityManager' ) ) {
 			
 			return null;
 		}
+
+        public function clear_table(){
+            global $wpdb;
+            $class = $this->entity_name;
+            $table = Annotations::get_table_annotations( $class );
+            if ( ! empty( $table ) ) {
+                $name = $table->get_name();
+                $sql = "TRUNCATE {$wpdb->$name}";
+                $res = $wpdb->query($sql);
+                if($res) return true;
+            }
+            return 0;
+        }
 		
 	}
 }

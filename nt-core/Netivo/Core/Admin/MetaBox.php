@@ -127,6 +127,12 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 		        foreach($languages as $lang) {
 		            $ret[] = pll_get_post($pof, $lang['slug']);
                 }
+            } elseif(function_exists('icl_get_languages')){
+		        $languages = icl_get_languages();
+		        foreach($languages as $lang) {
+		            $id = apply_filters( 'wpml_object_id', $pof, 'page', false, $lang['language_code']);
+		            if ($id != null) $ret[] = $id;
+                }
             }
 		    else $ret = [$pof];
 		    return $ret;

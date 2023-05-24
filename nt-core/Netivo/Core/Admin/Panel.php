@@ -85,6 +85,7 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
 			if ( ! wp_script_is( 'netivo-admin', 'enqueued' ) ) {
 				wp_enqueue_script( 'netivo-admin', NT_CORE_PLUGIN_URL . "/assets/admin/js/admin.min.js" );
 			}
+			$this->custom_header();
 		}
 
 		/**
@@ -131,7 +132,7 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
 					$namespace = $rc->getNamespaceName();
 					array_push( $include_array, $namespace . '\\MetaBox\\' . $name );
 				}
-
+				
 				foreach ( $include_array as $metabox ) {
 					new $metabox( $this->include_path );
 				}

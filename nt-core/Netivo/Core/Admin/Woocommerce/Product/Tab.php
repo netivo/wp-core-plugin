@@ -30,6 +30,13 @@ if(!class_exists('Netivo\Core\Admin\Woocommerce\Product\Tab')) {
 		 */
 		protected $title;
 
+        /**
+         * Tab priority in menu
+         *
+         * @var int
+         */
+        protected $priority = 15;
+
 		/**
 		 * Path to Admin folder on server.
 		 *
@@ -62,7 +69,7 @@ if(!class_exists('Netivo\Core\Admin\Woocommerce\Product\Tab')) {
 				'label'    => $this->title,
 				'target'   => 'nt_'.$this->id.'_product_data',
 				'class'    => array( '' ),
-				'priority' => 12,
+				'priority' => $this->priority,
 			);
 			return $tabs;
 		}
