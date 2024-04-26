@@ -104,5 +104,7 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 */
 		abstract protected function init_child_admin();
 
+        abstract protected function init_vars();
+
 	}
 }

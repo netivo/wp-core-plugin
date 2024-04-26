@@ -72,6 +72,13 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 		 */
 		protected $path = '';
 
+        /**
+         * Name of the view file, taken from reflection name or class attribute
+         *
+         * @var string
+         */
+        protected $view_name = '';
+
 		/**
 		 * MetaBox constructor.
 		 *
@@ -79,6 +86,23 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 		 */
 		public function __construct( $path ) {
 			$this->path = $path;
+
+            $obj = new ReflectionClass($this);
+            $data = $obj->getAttributes();
+            foreach($data as $attribute) {
+                if($attribute->getName() == 'Netivo\Attributes\MetaView') {
+                    $this->view_name = $attribute->getArguments()[0];
+                }
+            }
+            if(empty($this->view_name)){
+                $filename = $obj->getFileName();
+                $filename = str_replace( '.php', '', $filename );
+
+                $name = basename($filename);
+
+                $this->view_name = strtolower($name);
+            }
+
 			if ( ! is_array( $this->screen ) ) {
 				$tmp            = $this->screen;
 				$this->screen   = [];
@@ -148,14 +172,7 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
 		public function display( $post ) {
 			wp_nonce_field( 'save_' . $this->id, $this->id . '_nonce' );
 
-			$obj      = new ReflectionClass( $this );
-			$filename = $obj->getFileName();
-			$filename = str_replace( '.php', '', $filename );
-
-			$name = str_replace( $this->path . '/MetaBox/', '', $filename );
-			$name .= '.phtml';
-
-			$filename = $this->path . '/views/metabox/' . strtolower( $name );
+			$filename = $this->path . '/admin/metabox/' . $this->view_name . '.phtml';
 
 			if ( file_exists( $filename ) ) {
 				include $filename;

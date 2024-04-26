@@ -19,4 +19,3 @@ define( 'NT_CORE_PLUGIN_URL', WPMU_PLUGIN_URL.'/nt-core/' );
 define( 'NT_CORE_VERSION', '1.3' );
 
 require_once WPMU_PLUGIN_DIR.'/nt-core/Netivo/Autoloader.php';
-

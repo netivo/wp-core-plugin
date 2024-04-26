@@ -106,13 +106,20 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 * @var string
 		 */
 		protected $_parent = '';
-		
+
+        /**
+         * List of Child classes
+         *
+         * @var array
+         */
+        protected $_children = array();
+
 		/**
 		 * Children of page
 		 *
 		 * @var array
 		 */
-		protected $_children = array();
+		protected $_childrenObjects = array();
 		
 		/**
 		 * Redirect url after saving
@@ -126,7 +133,7 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 *
 		 * @var string
 		 */
-		protected $_admin_path = '';
+		protected $_views_path = '';
 		
 		/**
 		 * Page constructor.
@@ -135,8 +142,8 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 *
 		 * @throws \ReflectionException When error searching children.
 		 */
-		public function __construct( $path ) {
-			$this->_admin_path = $path;
+		public function __construct( $path, $children ) {
+			$this->_views_path = $path;
 			$this->generate_redirect();
 			add_action( 'init', [ $this, 'do_save' ] );
 			if ( $this->_type != 'tab' ) {
@@ -276,7 +283,7 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 * @return mixed|null
 		 */
 		public function find_tab( $tab ) {
-			foreach ( $this->_children as $child ) {
+			foreach ( $this->_childrenObjects as $child ) {
 				if ( $child->is_tab() ) {
 					if ( $child->get_slug() == $tab ) {
 						return $child;
@@ -293,26 +300,15 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 * @throws \ReflectionException When error.
 		 */
 		protected function register_children() {
-			$obj      = new ReflectionClass( $this );
-			$filename = basename( $obj->getFileName() );
-			$filename = str_replace( '.php', '', $filename );
-			
-			$include_array = array();
-			foreach ( self::$pages_path as $namespace => $item ) {
-				$files = glob( $item . str_replace( '\\', '/', $obj->getNamespaceName() ) . '/' . $filename . '/*.php' );
-				foreach ( $files as $file ) {
-					$name         = basename( $file );
-					$not_included = array();
-					if ( ! in_array( $name, $not_included ) ) {
-						$name = str_replace( '.php', '', $name );
-						array_push( $include_array, $obj->getNamespaceName() . '\\' . $filename . '\\' . $name );
-					}
-				}
-			}
-			foreach ( $include_array as $page ) {
-				$sbp = new $page( $this->_admin_path );
-				array_push( $this->_children, $sbp );
-			}
+            if(!empty($this->_children)) {
+                foreach($this->_children as $page){
+                    if(class_exists($page['class'])) {
+                        $className = $page['class'];
+                        $children = (!empty($page['children'])) ? $page['children'] : [];
+                        new $className($this->_views_path, $children);
+                    }
+                }
+            }
 		}
 		
 		/**
@@ -321,14 +317,22 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
 		 * @throws \ReflectionException When error.
 		 */
 		public function get_view_file() {
-			$obj      = new ReflectionClass( $this );
-			$filename = $obj->getFileName();
-			$filename = str_replace( '.php', '', $filename );
+            $obj = new ReflectionClass($this);
+            $data = $obj->getAttributes();
+            foreach($data as $attribute) {
+                if($attribute->getName() == 'Netivo\Attributes\PageView') {
+                    $name = $attribute->getArguments()[0];
+                }
+            }
+            if(empty($name)){
+                $filename = $obj->getFileName();
+                $filename = str_replace( '.php', '', $filename );
+
+                $name = basename($filename);
+                $name = strtolower($name);
+            }
 			
-			$name = str_replace( $this->_admin_path . '/Page/', '', $filename );
-			$name .= '.phtml';
-			
-			return $this->_admin_path . '/views/pages/' . strtolower($name);
+			return $this->_views_path . '/admin/pages/' . $name . '.phtml';
 		}
 
         /**
@@ -336,8 +340,8 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
          *
          * @return string
          */
-		public function get_admin_path() {
-		    return $this->_admin_path;
+		public function get_views_path() {
+		    return $this->_views_path;
         }
 	}
 }

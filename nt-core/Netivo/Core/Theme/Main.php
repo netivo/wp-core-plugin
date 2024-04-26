@@ -52,6 +52,8 @@ abstract class Main {
 	 */
 	protected $configuration = array();
 
+    protected $view_path = '';
+
 	/**
 	 * Get class instance, allowed only one instance per run
 	 *
@@ -90,6 +92,7 @@ abstract class Main {
 		$this->init_security();
 		$this->init_content_filters();
 		$this->init_front_site();
+        $this->init_customizer();
 
 		if(function_exists('WC')) {
 			$this->init_woocommerce();
@@ -120,6 +123,7 @@ abstract class Main {
 			$assetsConfig   = array();
 			$sidebarsConfig = array();
 			$mainConfig     = array();
+            $modulesConfig   = array();
 
 			$config_dir = get_stylesheet_directory() . "/config/";
 			if ( file_exists( $config_dir . 'images.config.php' ) ) {
@@ -140,10 +144,26 @@ abstract class Main {
 			if ( file_exists( $config_dir . 'main.config.php' ) ) {
 				$mainConfig = include $config_dir . 'main.config.php';
 			}
+			if ( file_exists( $config_dir . 'modules.config.php' ) ) {
+                $modulesConfig = include $config_dir . 'modules.config.php';
+			}
 
-			$this->configuration = array_merge( $this->configuration, $mainConfig, $imagesConfig, $postsConfig, $menuConfig, $assetsConfig, $sidebarsConfig );
+			$this->configuration = array_merge( $this->configuration, $mainConfig, $imagesConfig, $postsConfig, $menuConfig, $assetsConfig, $sidebarsConfig, $modulesConfig );
+
+            if(!empty($this->configuration['modules']['views_path'])) {
+                $this->view_path = $this->configuration['modules']['views_path'];
+            } else {
+                $this->view_path = get_stylesheet_directory() . '/src/views';
+            }
 		}
 	}
+    public function get_configuration() {
+        return $this->configuration;
+    }
+
+    public function get_view_path() {
+        return $this->view_path;
+    }
 
 	/**
 	 * Removes admin bar from front view
@@ -169,6 +189,9 @@ abstract class Main {
 	 * @return string
 	 */
 	public function remove_version_scripts( $src ) {
+        if(!empty($this->configuration['assets']['versions'])) {
+            if (in_array($src, $this->configuration['assets']['versions'])) return $src;
+        }
 		$src = remove_query_arg( 'ver', $src );
 
 		return $src;
@@ -259,23 +282,13 @@ abstract class Main {
 	 * Initializes widgets. Namespace got from configuration file: sidebars.config.php
 	 */
 	public function init_widgets() {
-		if ( array_key_exists( 'widgets', $this->configuration ) ) {
-			$dir = get_stylesheet_directory() . str_replace('\\', '/', $this->configuration['widgets']);
-			if(file_exists($dir)) {
-				$Directory     = new RecursiveDirectoryIterator( $dir);
-				$Iterator      = new RecursiveIteratorIterator( $Directory );
-				$Regex         = new RegexIterator( $Iterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH );
-				$include_array = array();
-				foreach ( $Regex as $name => $obj ) {
-					$name = basename( $name );
-					$name = str_replace( '.php', '', $name );
-					array_push( $include_array, $this->configuration['widgets'] . '\\' . $name );
-				}
-				foreach ( $include_array as $widget ) {
-					register_widget( $widget );
-				}
-			}
-		}
+        if(!empty($this->configuration['modules']['widget'])) {
+            foreach($this->configuration['modules']['widget'] as $widget) {
+                if(class_exists($widget)){
+                    register_widget($widget);
+                }
+            }
+        }
 	}
 
 	/**
@@ -394,19 +407,44 @@ abstract class Main {
 		if ( array_key_exists( 'assets', $this->configuration ) ) {
 			$js  = $this->configuration['assets']['js'];
 			$css = $this->configuration['assets']['css'];
+            $this->configuration['assets']['versions'] = [];
 			foreach ( $css as $st ) {
+                $loading_dir = '';
 				if ( file_exists( get_stylesheet_directory() . $st['file'] ) ) {
-					wp_enqueue_style( $st['name'], get_stylesheet_directory_uri() . $st['file'] );
+                    $loading_dir = get_stylesheet_directory_uri();
 				} else if ( file_exists( get_template_directory() . $st['file'] ) ) {
-					wp_enqueue_style( $st['name'], get_template_directory_uri() . $st['file'] );
+					$loading_dir = get_template_directory_uri();
 				}
+                if(!empty($loading_dir)) {
+                    if (!empty($st['condition']) && is_callable($st['condition'])) {
+                        if ($st['condition']()) {
+                            wp_enqueue_style($st['name'], $loading_dir . $st['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), ((!empty($sc['media'])) ? $sc['media'] : 'all'));
+                            if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $st['file'];
+                        }
+                    } else {
+                        wp_enqueue_style($st['name'], $loading_dir . $st['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), ((!empty($sc['media'])) ? $sc['media'] : 'all'));
+                        if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $st['file'];
+                    }
+                }
 			}
 			foreach ( $js as $sc ) {
-				if ( file_exists( get_stylesheet_directory() . $sc['file'] ) ) {
-					wp_enqueue_script( $sc['name'], get_stylesheet_directory_uri() . $sc['file'], array(), null, true );
-				} else if ( file_exists( get_template_directory() . $sc['file'] ) ) {
-					wp_enqueue_script( $sc['name'], get_template_directory_uri() . $sc['file'], array(), null, true );
-				}
+                $loading_dir = '';
+                if ( file_exists( get_stylesheet_directory() . $sc['file'] ) ) {
+                    $loading_dir = get_stylesheet_directory_uri();
+                } else if ( file_exists( get_template_directory() . $sc['file'] ) ) {
+                    $loading_dir = get_template_directory_uri();
+                }
+                if(!empty($loading_dir)) {
+                    if (!empty($st['condition']) && is_callable($st['condition'])) {
+                        if ($st['condition']()) {
+                            wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), true );
+                            if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $sc['file'];
+                        }
+                    } else {
+                        wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), true );
+                        if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $sc['file'];
+                    }
+                }
 			}
 		}
 	}
@@ -423,6 +461,21 @@ abstract class Main {
 			add_image_size( $size['name'], $size['width'], $size['height'], $size['crop'] );
 		}
 	}
+
+    /**
+     * Initialize WP Customizer settings defined in modules.config.php
+     *
+     * @return void
+     */
+    public function init_customizer() {
+        if(!empty($this->configuration['modules']['customizer'])) {
+            foreach($this->configuration['modules']['customizer'] as $customizer) {
+                if(class_exists($customizer)){
+                    new $customizer();
+                }
+            }
+        }
+    }
 
 	/**
 	 * Initializes woocommerce functions.
@@ -448,7 +501,7 @@ abstract class Main {
 	protected function init_admin_site() {
 		if ( ! empty( self::$admin_panel ) && class_exists( self::$admin_panel ) ) {
 			$name = self::$admin_panel;
-			new $name();
+			new $name($this);
 		}
 	}
     protected abstract function init();
