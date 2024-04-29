@@ -61,8 +61,8 @@ if ( ! class_exists( '\Netivo\Core\Admin\Panel' ) ) {
             $this->parent_class = $parent;
 		    $this->set_vars();
 
-            if(!empty($this->parent_class->get_configuration()['admin_modules'])) {
-                $this->modules = $this->parent_class->get_configuration()['admin_modules'];
+            if(!empty($this->parent_class->get_configuration()['modules']['admin'])) {
+                $this->modules = $this->parent_class->get_configuration()['modules']['admin'];
             }
 
 			add_action( 'admin_enqueue_scripts', [ $this, 'init_header' ] );

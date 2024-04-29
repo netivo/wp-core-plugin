@@ -28,6 +28,13 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 */
 		protected $include_path = '';
 
+        /**
+         * @var
+         */
+        protected $main_class = null;
+
+        protected $modules = [];
+
 		/**
 		 * Woocommerce constructor.
 		 *
@@ -35,7 +42,13 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 *
 		 * @throws \ReflectionException When error.
 		 */
-		public function __construct( ) {
+		public function __construct( $main_class ) {
+            $this->main_class = $main_class;
+
+            if(!empty($this->main_class->get_configuration()['modules']['woocommerce'])) {
+                $this->modules = $this->main_class->get_configuration()['modules']['woocommerce'];
+            }
+
 		    $this->init_vars();
 			$this->init_product_types();
 			$this->init_child();
@@ -52,23 +65,13 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 * @throws \ReflectionException When error.
 		 */
 		protected function init_product_tabs(){
-			if ( file_exists( $this->include_path . '/Admin/Woocommerce/Product/Tabs' ) ) {
-				$Directory     = new RecursiveDirectoryIterator( $this->include_path . '/Admin/Woocommerce/Product/Tabs' );
-				$Iterator      = new RecursiveIteratorIterator( $Directory );
-				$Regex         = new RegexIterator( $Iterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH );
-				$include_array = array();
-				$rc            = new ReflectionClass( $this );
-				foreach ( $Regex as $name => $obj ) {
-					$name      = basename( $name );
-					$name      = str_replace( '.php', '', $name );
-					$namespace = $rc->getNamespaceName();
-					array_push( $include_array, $namespace . '\\Admin\\Woocommerce\\Product\\Tabs\\' . $name );
-				}
-
-				foreach ( $include_array as $tab ) {
-					new $tab( $this->include_path . '/Admin' );
-				}
-			}
+            if(!empty($this->modules['product_tabs'])) {
+                foreach($this->modules['product_tabs'] as $tab) {
+                    if(class_exists($tab)) {
+                        new $tab( $this->main_class->get_view_path() );
+                    }
+                }
+            }
 		}
 		/**
 		 * Initialize new product type
@@ -76,23 +79,13 @@ if(!class_exists('Netivo\Core\Woocommerce')) {
 		 * @throws \ReflectionException When error.
 		 */
 		protected function init_product_types(){
-			if ( file_exists( $this->include_path . '/Woocommerce/Product/Type' ) ) {
-				$Directory     = new RecursiveDirectoryIterator( $this->include_path . '/Woocommerce/Product/Type' );
-				$Iterator      = new RecursiveIteratorIterator( $Directory );
-				$Regex         = new RegexIterator( $Iterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH );
-				$include_array = array();
-				$rc            = new ReflectionClass( $this );
-				foreach ( $Regex as $name => $obj ) {
-					$name      = basename( $name );
-					$name      = str_replace( '.php', '', $name );
-					$namespace = $rc->getNamespaceName();
-					array_push( $include_array, $namespace . '\\Woocommerce\\Product\\Type\\' . $name );
-				}
-
-				foreach ( $include_array as $type ) {
-					$type::register();
-				}
-			}
+            if(!empty($this->modules['product_types'])) {
+                foreach($this->modules['product_types'] as $type) {
+                    if(class_exists($type)) {
+                        $type::register();
+                    }
+                }
+            }
 		}
 
 		/**

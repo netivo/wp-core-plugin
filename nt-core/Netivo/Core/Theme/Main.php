@@ -12,6 +12,7 @@ namespace Netivo\Core\Theme;
 
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
+use Netivo\Core\Database\EntityManager;
 use Netivo\Theme\Admin\Panel;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -93,6 +94,7 @@ abstract class Main {
 		$this->init_content_filters();
 		$this->init_front_site();
         $this->init_customizer();
+        $this->init_database();
 
 		if(function_exists('WC')) {
 			$this->init_woocommerce();
@@ -277,6 +279,20 @@ abstract class Main {
 		add_action( 'wp_enqueue_scripts', [ $this, 'init_styles_and_scripts' ] );
 
 	}
+
+    /**
+     * Initializes database tables configured in modules.config.php
+     * @return void
+     */
+    protected function init_database() {
+        if(!empty($this->configuration['modules']['database'])) {
+            foreach ($this->configuration['modules']['database'] as $dbTable) {
+                if(class_exists($dbTable)) {
+                    EntityManager::createTable($dbTable);
+                }
+            }
+        }
+    }
 
 	/**
 	 * Initializes widgets. Namespace got from configuration file: sidebars.config.php
@@ -484,7 +500,7 @@ abstract class Main {
 		add_action( 'after_setup_theme', [$this, 'enable_woocommerce_support'] );
 		if ( ! empty( self::$woocommerce_panel ) && class_exists( self::$woocommerce_panel ) ) {
 			$name = self::$woocommerce_panel;
-			new $name();
+			new $name($this);
 		}
 	}
 

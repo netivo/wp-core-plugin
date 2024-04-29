@@ -320,7 +320,7 @@ if ( ! class_exists( '\Netivo\Core\Admin\Page' ) ) {
             $obj = new ReflectionClass($this);
             $data = $obj->getAttributes();
             foreach($data as $attribute) {
-                if($attribute->getName() == 'Netivo\Attributes\PageView') {
+                if($attribute->getName() == 'Netivo\Attributes\View') {
                     $name = $attribute->getArguments()[0];
                 }
             }

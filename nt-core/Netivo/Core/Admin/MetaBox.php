@@ -90,7 +90,7 @@ if ( ! class_exists( 'Netivo\Core\Admin\MetaBox' ) ) {
             $obj = new ReflectionClass($this);
             $data = $obj->getAttributes();
             foreach($data as $attribute) {
-                if($attribute->getName() == 'Netivo\Attributes\MetaView') {
+                if($attribute->getName() == 'Netivo\Attributes\View') {
                     $this->view_name = $attribute->getArguments()[0];
                 }
             }

@@ -82,14 +82,23 @@ if(!class_exists('Netivo\Core\Admin\Woocommerce\Product\Tab')) {
 		public function display() {
 			global $post, $thepostid, $product_object;
 
-			$obj      = new ReflectionClass( $this );
-			$filename = $obj->getFileName();
-			$filename = str_replace( '.php', '', $filename );
+            $obj = new ReflectionClass($this);
+            $data = $obj->getAttributes();
+            foreach($data as $attribute) {
+                if($attribute->getName() == 'Netivo\Attributes\View') {
+                    $name = $attribute->getArguments()[0];
+                }
+            }
+            if(empty($name)){
+                $filename = $obj->getFileName();
+                $filename = str_replace( '.php', '', $filename );
 
-			$name = str_replace( $this->path . '/Woocommerce/Product/Tabs', '', $filename );
-			$name .= '.phtml';
+                $name = basename($filename);
 
-			$filename = $this->path . '/views/woocommerce/product/tabs' . strtolower( $name );
+                $name = strtolower($name);
+            }
+
+            $filename = $this->path . '/woocommerce/product/tabs/'.$name.'.phtml';
 
 			if ( file_exists( $filename ) ) {
 				echo '<div id="nt_'.$this->id.'_product_data" class="panel woocommerce_options_panel">';
