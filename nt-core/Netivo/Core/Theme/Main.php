@@ -95,6 +95,7 @@ abstract class Main {
 		$this->init_front_site();
         $this->init_customizer();
         $this->init_database();
+        $this->init_endpoints();
 
 		if(function_exists('WC')) {
 			$this->init_woocommerce();
@@ -289,6 +290,19 @@ abstract class Main {
             foreach ($this->configuration['modules']['database'] as $dbTable) {
                 if(class_exists($dbTable)) {
                     EntityManager::createTable($dbTable);
+                }
+            }
+        }
+    }
+    /**
+     * Initializes endpoints configured in modules.config.php
+     * @return void
+     */
+    protected function init_endpoints() {
+        if(!empty($this->configuration['modules']['endpoint'])) {
+            foreach ($this->configuration['modules']['endpoint'] as $endpoint) {
+                if(class_exists($endpoint)) {
+                    new $endpoint();
                 }
             }
         }
