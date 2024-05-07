@@ -96,6 +96,7 @@ abstract class Main {
         $this->init_customizer();
         $this->init_database();
         $this->init_endpoints();
+		$this->init_rest_routes();
 
 		if(function_exists('WC')) {
 			$this->init_woocommerce();
@@ -303,6 +304,19 @@ abstract class Main {
             foreach ($this->configuration['modules']['endpoint'] as $endpoint) {
                 if(class_exists($endpoint)) {
                     new $endpoint();
+                }
+            }
+        }
+    }
+    /**
+     * Initializes rest routes configured in modules.config.php
+     * @return void
+     */
+    protected function init_rest_routes() {
+        if(!empty($this->configuration['modules']['rest'])) {
+            foreach ($this->configuration['modules']['rest'] as $rest) {
+                if(class_exists($rest)) {
+                    new $rest();
                 }
             }
         }
