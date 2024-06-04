@@ -441,6 +441,22 @@ abstract class Main {
 
 		foreach ( $customTaxonomies as $id => $customTaxonomy ) {
 			register_taxonomy( $id, $customTaxonomy['post'], $customTaxonomy['options'] );
+			if(!empty($customTaxonomy['terms'])) {
+				if(empty($customTaxonomy['version']) || ($customTaxonomy['version'] != get_option('nt_tax_'.$id.'_version'))) {
+					foreach($customTaxonomy['terms'] as $term) {
+						if(!term_exists($term['slug'], $id)) {
+							wp_insert_term($term['name'], $id, ['slug' => $term['slug']]);
+						}
+					}
+					$current_terms = new \WP_Term_Query(['taxonomy' => $id, 'hide_empty' => false, 'fields' => 'id=>slug']);
+					foreach($current_terms->get_terms() as $tid => $ct) {
+						if(!array_key_exists($ct, $customTaxonomy['terms'])) {
+							wp_delete_term($tid, $id);
+						}
+					}
+					update_option('nt_tax_'.$id.'_version', $customTaxonomy['version']);
+				}
+			}
 		}
 	}
 
