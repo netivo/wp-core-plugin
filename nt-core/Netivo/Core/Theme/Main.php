@@ -495,13 +495,13 @@ abstract class Main {
                     $loading_dir = get_template_directory_uri();
                 }
                 if(!empty($loading_dir)) {
-                    if (!empty($st['condition']) && is_callable($st['condition'])) {
-                        if ($st['condition']()) {
-                            wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), true );
+                    if (!empty($sc['condition']) && is_callable($sc['condition'])) {
+                        if ($sc['condition']()) {
+                            wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), ['in_footer' => true] );
                             if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $sc['file'];
                         }
                     } else {
-                        wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), true );
+                        wp_enqueue_script( $sc['name'], $loading_dir . $sc['file'], array(), ((!empty($sc['version'])) ? $sc['version'] : null), ['in_footer' => true] );
                         if(!empty($sc['version'])) $this->configuration['assets']['versions'][] = $loading_dir . $sc['file'];
                     }
                 }

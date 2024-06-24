@@ -118,7 +118,9 @@ if(!class_exists('Netivo\Core\Admin\Woocommerce\Product\Tab')) {
 		 * @return mixed
 		 */
 		public function do_save( $post_id ) {
-
+            if ( get_post_type($post_id) !== 'product' ) {
+                return $post_id;
+            }
 			return $this->save( $post_id );
 		}
 

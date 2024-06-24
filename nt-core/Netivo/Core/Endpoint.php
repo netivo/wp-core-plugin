@@ -70,9 +70,9 @@ if ( ! class_exists( '\Netivo\Core\Endpoint' ) ) {
 		public function redirect_template() {
 			if ( get_query_var( $this->name ) ) {
 				if ( $this->type == 'template' ) {
-					
-					return locate_template( $this->template );
-					
+					locate_template( $this->template, true );
+                    exit();
+
 				} elseif ( $this->type == 'action' ) {
 					
 					$this->doAction( get_query_var( $this->name ) );
