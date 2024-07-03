@@ -60,6 +60,10 @@ if ( ! class_exists( 'Netivo\Core\Admin\Gutenberg' ) ) {
          */
         protected $uri = '';
 
+
+	    protected $style = null;
+	    protected $script = null;
+
         /**
          * Gutenberg constructor.
          *
@@ -69,6 +73,7 @@ if ( ! class_exists( 'Netivo\Core\Admin\Gutenberg' ) ) {
         public function __construct( $path, $uri ) {
             $this->path = $path;
             $this->uri  = $uri;
+	        $this->init_style();
             add_action( 'init', [ $this, 'register_block' ] );
         }
 
@@ -81,13 +86,23 @@ if ( ! class_exists( 'Netivo\Core\Admin\Gutenberg' ) ) {
             $obj      = new ReflectionClass( $this );
             $filename = $obj->getFileName();
             $filename = str_replace( '.php', '', $filename );
-
-            $name = strtolower( str_replace( $this->path . '/Gutenberg/', '', $filename ) );
-            $css  = $this->path . '/views/gutenberg/' . strtolower( $name ) . '/block.css';
-            $css_uri  = $this->uri . '/views/gutenberg/' . strtolower( $name ) . '/block.css';
-            $js   = $this->path . '/views/gutenberg/' . strtolower( $name ) . '/block.js';
-            $js_uri   = $this->uri . '/views/gutenberg/' . strtolower( $name ) . '/block.js';
-
+	        $obj = new ReflectionClass($this);
+	        $data = $obj->getAttributes();
+	        foreach($data as $attribute) {
+		        if($attribute->getName() == 'Netivo\Attributes\Block') {
+					$name = $attribute->getArguments()[0];
+		        }
+	        }
+	        if(empty($name)){
+		        $filename = $obj->getFileName();
+		        $filename = str_replace( '.php', '', $filename );
+		        $name = basename($filename);
+		        $name = 'src/views/gutenberg/'.strtolower($name);
+	        }
+            $css  = get_template_directory() . '/' . strtolower( $name ) . '/block.css';
+            $css_uri  = get_template_directory_uri() . '/' . strtolower( $name ) . '/block.css';
+            $js   = get_template_directory() . '/' . strtolower( $name ) . '/block.js';
+            $js_uri   = get_template_directory_uri() . '/' . strtolower( $name ) . '/block.js';
 
             if ( file_exists( $css ) ) {
                 wp_register_style( $this->handle, $css_uri, array( 'wp-edit-blocks' ) );
@@ -98,19 +113,32 @@ if ( ! class_exists( 'Netivo\Core\Admin\Gutenberg' ) ) {
                 throw new \Exception( 'Block js not found.' );
             }
 
-            $args = [
-                'editor_script' => $this->handle,
-            ];
-            if ( file_exists( $css ) ) {
-                $args['editor_style'] = $this->handle;
-            }
-            if ( ! empty( $this->callback ) ) {
-                $args['render_callback'] = [ $this, $this->callback ];
-            }
+	        $args = [
+		        'editor_script' => $this->handle,
+	        ];
+	        if ( file_exists( $css ) ) {
+		        $args['editor_style'] = $this->handle;
+	        }
+	        if(!empty($this->style)) {
+		        if (file_exists($this->style['file'])) {
+			        wp_register_style($this->handle . '-style', $this->style['uri']);
+			        $args['style'] = $this->handle . '-style';
+		        }
+	        }
+	        if(!empty($this->script)) {
+		        if (file_exists($this->script['file'])) {
+			        wp_register_script($this->handle . '-script', $this->script['uri']);
+			        $args['script'] = $this->handle . '-script';
+		        }
+	        }
+	        if ( ! empty( $this->callback ) ) {
+		        $args['render_callback'] = [ $this, $this->callback ];
+	        }
 
             register_block_type( $this->id, $args );
 
         }
+	    abstract function init_style();
 
     }
 }

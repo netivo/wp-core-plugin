@@ -96,6 +96,7 @@ abstract class Main {
         $this->init_customizer();
         $this->init_database();
         $this->init_endpoints();
+        $this->init_gutenberg();
 		$this->init_rest_routes();
 
 		if(function_exists('WC')) {
@@ -536,6 +537,16 @@ abstract class Main {
             }
         }
     }
+
+	protected function init_gutenberg() {
+		if(!empty($this->configuration['modules']['gutenberg'])) {
+			foreach($this->configuration['modules']['gutenberg'] as $gutenberg) {
+				if(class_exists($gutenberg)) {
+					new $gutenberg($this->get_view_path(), str_replace(get_stylesheet_directory(), get_stylesheet_directory_uri(), $this->get_view_path()));
+				}
+			}
+		}
+	}
 
 	/**
 	 * Initializes woocommerce functions.
